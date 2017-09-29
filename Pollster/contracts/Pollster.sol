@@ -103,6 +103,9 @@ contract Pollster {
 	}
 
 	function vote(uint pollNum, uint _choice) public isOpen(pollNum) firstVote(pollNum) viableChoice(pollNum, _choice) returns (bool) {
+
+			require(balances[msg.sender] + polls[pollNum].reward > balances[msg.sender] && balances[polls[pollNum].owner] + polls[pollNum].rewardtotal - polls[pollNum].reward * polls[pollNum].numPolls > balances[polls[pollNum].owner]);
+
 	    polls[pollNum].votes[msg.sender] = Vote(_choice, true);
 	    polls[pollNum].numVoters += 1;
 	    VoteSubmitted(msg.sender);
@@ -116,18 +119,6 @@ contract Pollster {
         balances[msg.sender] += polls[pollNum].reward;
 
 	    return true;
-	}
-
-    function withdraw() public returns (uint transferedAmount) {
-	    if (balances[msg.sender] == 0) {
-	      return 0;
-	    }
-
-        uint transferAmount = balances[msg.sender];
-	    balances[msg.sender] = 0;
-	    msg.sender.transfer(transferAmount);
-	    Withdrawal(msg.sender);
-	    return transferAmount;
 	}
 
 	function getQuestion(uint pollNum) constant public returns (string, uint[]) {
@@ -148,6 +139,22 @@ contract Pollster {
 
 	function getNumPolls() public constant returns (uint) {
 	    return pollNumber - 1;
+	}
+
+	function getBalance() public constant returns (uint) {
+	    return balances[msg.sender];
+	}
+
+	function withdraw() public returns (uint transferedAmount) {
+	    if (balances[msg.sender] == 0) {
+	      return 0;
+	    }
+
+      uint transferAmount = balances[msg.sender];
+	    balances[msg.sender] = 0;
+	    msg.sender.transfer(transferAmount);
+	    Withdrawal(msg.sender);
+	    return transferAmount;
 	}
 
 	/* Fallback function */

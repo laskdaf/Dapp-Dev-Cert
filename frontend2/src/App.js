@@ -2,20 +2,41 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {pollsterContract, account, balance, web3} from './EthereumSetup';
-
+var Web3 = require('web3');
 
 class App extends Component {
 
   constructor(props) {
     super(props)
+
+    // var web3 = new Web3();
+    // web3 = new Web3(window.web3.currentProvider);
+
+    // var account = web3.eth.accounts[0]; //"0x10bd4E21CfBd2C252BDa7BfB54364a3924287e0B";
+    // console.log(account)
+    // var balance = -1
+    // web3.eth.getBalance(account, function(error, result){
+    //   if(!error)
+    //         balance = 1
+    //     else
+    //         console.error(error);
+    // })
+
+    this.newPoll = this.newPoll.bind(this);
+    this.getQuestionAndReward = this.getQuestionAndReward.bind(this);
+    this.respondToPoll = this.respondToPoll.bind(this);
+    this.checkResponse = this.checkResponse.bind(this);
+    this.getResults = this.getResults.bind(this);
+
     this.state = {
+      web3: web3,
       numPolls: "",
       question: "",
       choices: "",
       reward: "",
       data: "",
       account: account,
-      balance: balance,
+      balance: -1,
       choiceToIndex: {},
       isValidInput: "",
       isValidInputResults: "",
@@ -23,21 +44,31 @@ class App extends Component {
       results: "",
       resultsError: "",
       withdrawAmount: 0,
+      rewardBalance: 0
     }
-    this.newPoll = this.newPoll.bind(this);
-    this.getQuestionAndReward = this.getQuestionAndReward.bind(this);
-    this.respondToPoll = this.respondToPoll.bind(this);
-    this.checkResponse = this.checkResponse.bind(this);
-    this.getResults = this.getResults.bind(this);
   }
 
   componentWillMount() {
-    var data = pollsterContract.getNumPolls({from: account, gas: 40000})
+    var data = pollsterContract.getNumPolls({from: this.state.account})
+    var rewardB = pollsterContract.getBalance({from: this.state.account})
     console.log(data)
+
+    // var balance = -10
+    // this.state.web3.eth.getBalance(this.state.account, function(error, result){
+    //   if(!error) {
+    //     balance = result
+    //   } else {
+    //     console.log(result)
+    //     console.error(error)
+    //   }
+    // })
+
     this.setState({
       numPolls: parseInt(data, 10),
       isValidInput: "not",
-      isValidInputResults: "not"
+      isValidInputResults: "not",
+      balance: balance,
+      rewardBalance: web3.fromWei(rewardB.toString())
     })
   }
 
@@ -50,7 +81,7 @@ class App extends Component {
         reward: ""
       })
     } else {
-      var data = pollsterContract.getQuestion(event.target.value, {from: account, gas: 4000000})
+      var data = pollsterContract.getQuestion(event.target.value)
 
       var text = ""
       var choiceToIndexDict = {}
@@ -59,28 +90,28 @@ class App extends Component {
         choiceToIndexDict[data[1][i]] = i
       }
 
-      var rewardData = pollsterContract.getReward(event.target.value, {from: account, gas: 40000})
+      var rewardData = pollsterContract.getReward(event.target.value)
 
       this.setState({
         question: String(data[0]),
         choices: "[" + text.substring(0, text.length - 2) + "]",
-        reward: web3.fromWei(rewardData.toString()),
+        reward: this.state.web3.fromWei(rewardData.toString()),
         choiceToIndex: choiceToIndexDict
       })
     }
   }
 
   newPoll(event) {
-    // var array = JSON.parse(this.refs.choices.value);
-    //
-    // if (!(array instanceof Array) || !Number.isInteger(parseInt(this.refs.numPolls.value, 10)) || isNaN(parseFloat(this.refs.reward.value))) {
-    //   return
-    // }
-    // console.log(parseFloat(this.refs.reward.value))
+    var array = JSON.parse(this.refs.choices.value);
 
-    // pollsterContract.newPoll(this.refs.question.value.toString(), array, parseInt(this.refs.numPolls.value, 10), {from: account, gas: 40000, value: web3.toWei(parseFloat(this.refs.reward.value, 10), 'ether')})
+    if (!(array instanceof Array) || !Number.isInteger(parseInt(this.refs.numPolls.value, 10)) || isNaN(parseFloat(this.refs.reward.value))) {
+      return
+    }
+    console.log(parseFloat(this.refs.reward.value))
 
-    pollsterContract.newPoll.sendTransaction("test", [1,2], 1, {from: account, gas: 4000000, value: 30})
+    pollsterContract.newPoll(this.refs.question.value.toString(), array, parseInt(this.refs.numPolls.value, 10), {from: account, gas: 4000000, value: web3.toWei(parseFloat(this.refs.reward.value, 10), 'ether')})
+
+    // pollsterContract.newPoll("test", [1,2], 1, {from: this.state.account, gas: 4000000, value: 30})
 
     var data = pollsterContract.getNumPolls()
     this.setState({
@@ -97,7 +128,7 @@ class App extends Component {
       console.log(parseInt(this.refs.responsePollNumber.value, 10))
       console.log(dictionary[parseInt(this.refs.responceChoice.value, 10)])
 
-      pollsterContract.vote(this.refs.responsePollNumber.value, dictionary[parseInt(this.refs.responceChoice.value, 10)], {from: account, gas: 4000000})
+      pollsterContract.vote(this.refs.responsePollNumber.value, dictionary[parseInt(this.refs.responceChoice.value, 10)], {from: this.state.account, gas: 4000000})
     } else {
       this.setState({
         isValidInput: "not",
@@ -128,7 +159,7 @@ class App extends Component {
     if (Number.isInteger(parseInt(event.target.value))) {
 
       try {
-        var data = pollsterContract.getResults(parseInt(event.target.value), {from: account, gas: 4000000})
+        var data = pollsterContract.getResults(parseInt(event.target.value), {from: this.state.account, gas: 4000000})
 
         var text = ""
         for (var i = 0; i < data[1].length; i++) {
@@ -144,6 +175,8 @@ class App extends Component {
       }
       catch(err) {
         this.setState({
+          resultsQuestion: "",
+          results: "",
           resultsError: "Poll has not ended yet or you are not the owner of the poll."
         })
       }
@@ -160,9 +193,8 @@ class App extends Component {
     }
   }
 
-  withdrawRewards() {
+  withdrawRewards(event) {
     pollsterContract.withdraw({from: account, gas: 4000000})
-
   }
 
   render() {
@@ -175,6 +207,7 @@ class App extends Component {
         <p className="App-intro">
           Your account is: {this.state.account}<br />
           Your balance is: {this.state.balance} ether<br />
+          Your total rewards are: {this.state.rewardBalance} ether<br />
           ================================================================== <br />
           Number of Polls: {this.state.numPolls} <br />
           ================================================================== <br />
@@ -225,8 +258,8 @@ class App extends Component {
 
         <p> ================================================================== </p>
 
-        <form onSubmit={this.withdrawRewards}>
-          <label>
+        <form>
+          <label onSubmit={this.withdrawRewards}>
 
             <input type="submit" value="Withdraw Rewards"/> <br />
 

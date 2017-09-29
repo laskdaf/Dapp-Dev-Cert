@@ -215,7 +215,7 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 87,
+                                  "referencedDeclaration": 617,
                                   "type": "msg",
                                   "value": "msg"
                                 },
@@ -350,7 +350,7 @@
                                   "overloadedDeclarations": [
                                     null
                                   ],
-                                  "referencedDeclaration": 87,
+                                  "referencedDeclaration": 617,
                                   "type": "msg",
                                   "value": "msg"
                                 },
@@ -801,32 +801,22 @@
     "src": "0:493:0"
   },
   "networks": {
-    "4": {
+    "1506723713776": {
       "events": {},
       "links": {},
-      "address": "0xb698750fd554d294287b68cd86f2ec3db3ac2bab"
+      "address": "0xd81de0a269c079bda8b2606c1d52430ab21c53b5"
     },
-    "1506322141271": {
+    "1506723754906": {
       "events": {},
       "links": {},
-      "address": "0x474ab3fd38d87c56be1ae809a21ce06b65bc3604"
+      "address": "0xdbc80f42820a0c732e98f33202f39fa6831820f2"
     },
-    "1506322746770": {
+    "1506723823269": {
       "events": {},
       "links": {},
-      "address": "0x9608389e5b0bcf706f87ffc975843b27f7743f3e"
-    },
-    "1506363431113": {
-      "events": {},
-      "links": {},
-      "address": "0x62e5b9926ac2a507a1aaa267c9729a404857659f"
-    },
-    "1506660320826": {
-      "events": {},
-      "links": {},
-      "address": "0xb29f7038715c368e0dbe4f89eeb4853dede77af8"
+      "address": "0x900668f5bea978e3aba381740ae51ef820ab96e7"
     }
   },
   "schemaVersion": "1.0.0",
-  "updatedAt": "2017-09-29T09:04:19.445Z"
+  "updatedAt": "2017-09-29T22:24:01.029Z"
 }
